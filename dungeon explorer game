@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define SIZE 5
+#define TRAPS 3
+
+char dungeon[SIZE][SIZE];
+int playerX = 0, playerY = 0;
+int exitX, exitY;
+
+void generateDungeon() {
+    // Initialize all cells to empty
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            dungeon[i][j] = '.';
+
+    // Place the player
+    dungeon[playerX][playerY] = 'P';
+
+    // Place the exit
+    srand(time(NULL));
+    do {
+        exitX = rand() % SIZE;
+        exitY = rand() % SIZE;
+    } while (exitX == 0 && exitY == 0);
+    dungeon[exitX][exitY] = 'E';
+
+    // Place traps
+    for (int t = 0; t < TRAPS; t++) {
+        int tx, ty;
+        do {
+            tx = rand() % SIZE;
+            ty = rand() % SIZE;
+        } while (dungeon[tx][ty] != '.');
+        dungeon[tx][ty] = 'T';
+    }
+}
+
+void printDungeon() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (i == playerX && j == playerY)
+                printf("P ");
+            else
+                printf("%c ", dungeon[i][j] == 'T' ? '.' : dungeon[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int movePlayer(char direction) {
+    int newX = playerX;
+    int newY = playerY;
+
+    switch (direction) {
+        case 'w': newX--; break;
+        case 's': newX++; break;
+        case 'a': newY--; break;
+        case 'd': newY++; break;
+        default: printf("Invalid input! Use w/a/s/d to move.\n"); return 1;
+    }
+
+    if (newX < 0 || newY < 0 || newX >= SIZE || newY >= SIZE) {
+        printf("You hit a wall!\n");
+        return 1;
+    }
+
+    playerX = newX;
+    playerY = newY;
+
+    if (dungeon[playerX][playerY] == 'T') {
+        printf("You stepped on a trap! Game Over!\n");
+        return 0;
+    } else if (playerX == exitX && playerY == exitY) {
+        printf("You found the exit! You Win!\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+int main() {
+    char move;
+    int playing = 1;
+
+    generateDungeon();
+
+    printf("Welcome to Dungeon Explorer!\n");
+    printf("Reach the exit (E) and avoid traps!\n");
+    printf("Use W (up), A (left), S (down), D (right) to move.\n\n");
+
+    while (playing) {
+        printDungeon();
+        printf("\nYour move: ");
+        scanf(" %c", &move);
+        playing = movePlayer(move);
+    }
+
+    return 0;
+}
